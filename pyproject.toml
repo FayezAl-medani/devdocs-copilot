@@ -1,0 +1,41 @@
+[project]
+name = "devdocs"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Fayez ALmedani", email = "fayezalmedani7@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.4.6",
+]
+
+[project.scripts]
+devdocs-copilot = "devdocs:main"
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.169.0",
+    "pre-commit>=4.6.2",
+    "pyright>=1.1.414",
+    "pytest>=9.1.1",
+    "ruff>=0.17.0",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "NPY"]
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

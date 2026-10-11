@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.py[oc]
+
+# Virtual environments
+.venv/
+
+# Testing and linting caches
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+
+# Build artifacts
+build/
+dist/
+wheels/
+*.egg-info
