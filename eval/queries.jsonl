@@ -1,0 +1,30 @@
+{"query": "how do I protect a route with a guard?", "target_ids": ["guards#guards", "guards#binding-guards#part1"], "category": "keyword_overlap"}
+{"query": "how to bind validation pipe to a controller method", "target_ids": ["pipes#binding-validation-pipes", "pipes#binding-pipes#part1"], "category": "keyword_overlap"}
+{"query": "create a custom route decorator with createParamDecorator", "target_ids": ["custom-decorators#custom-route-decorators", "custom-decorators#param-decorators"], "category": "keyword_overlap"}
+{"query": "how to catch exceptions with ExceptionFilter and @Catch", "target_ids": ["exception-filters#exception-filters"], "category": "keyword_overlap"}
+{"query": "how to configure CORS in NestJS with enableCors", "target_ids": ["security__cors#getting-started", "security__cors#cors"], "category": "keyword_overlap"}
+{"query": "how to implement rate limiting with ThrottlerModule", "target_ids": ["security__rate-limiting#configuration#part1", "security__rate-limiting#rate-limiting"], "category": "keyword_overlap"}
+{"query": "how to create a WebSocket gateway with @WebSocketGateway", "target_ids": ["websockets__gateways#overview#part1", "websockets__gateways#gateways"], "category": "keyword_overlap"}
+{"query": "how to apply middleware to specific routes with MiddlewareConsumer", "target_ids": ["middlewares#applying-middleware#part1", "middlewares#middleware-consumer"], "category": "keyword_overlap"}
+{"query": "how to create a dynamic module with forRoot and DynamicModule", "target_ids": ["modules#dynamic-modules#part1"], "category": "keyword_overlap"}
+{"query": "how to use MicroserviceOptions and Transport.REDIS", "target_ids": ["microservices__basics#getting-started#part1", "microservices__basics#overview"], "category": "keyword_overlap"}
+{"query": "how to restrict endpoint access based on user permissions", "target_ids": ["guards#authorization-guard", "guards#role-based-authentication"], "category": "paraphrased"}
+{"query": "transform incoming string parameters into integers automatically", "target_ids": ["pipes#built-in-pipes", "pipes#transformation-use-case#part1"], "category": "paraphrased"}
+{"query": "modifying the outgoing response payload structure globally", "target_ids": ["interceptors#response-mapping#part1", "interceptors#basics"], "category": "paraphrased"}
+{"query": "handling two services that inject each other circularly", "target_ids": ["fundamentals__circular-dependency#forward-reference", "fundamentals__circular-dependency#circular-dependency"], "category": "paraphrased"}
+{"query": "limiting the number of API calls per IP address to prevent abuse", "target_ids": ["security__rate-limiting#rate-limiting", "security__rate-limiting#configuration#part1"], "category": "paraphrased"}
+{"query": "injecting asynchronous database connection configuration on startup", "target_ids": ["fundamentals__async-components#asynchronous-providers"], "category": "paraphrased"}
+{"query": "intercepting uncaught HTTP errors and returning a custom error format", "target_ids": ["exception-filters#exception-filters", "exception-filters#throwing-standard-exceptions#part1"], "category": "paraphrased"}
+{"query": "registering code that runs before route execution to log incoming requests", "target_ids": ["middlewares#middleware", "middlewares#applying-middleware#part1"], "category": "paraphrased"}
+{"query": "creating a single shared instance of a utility across the entire app without importing everywhere", "target_ids": ["modules#global-modules"], "category": "paraphrased"}
+{"query": "publishing events asynchronously between decoupled backend workers", "target_ids": ["microservices__basics#publishing-events", "microservices__basics#event-based"], "category": "paraphrased"}
+{"query": "why is my dependency undefined when injected into constructor", "target_ids": ["fundamentals__circular-dependency#circular-dependency", "fundamentals__circular-dependency#forward-reference"], "category": "ambiguous_hard"}
+{"query": "measuring API method latency and execution duration", "target_ids": ["interceptors#aspect-interception#part1", "interceptors#basics"], "category": "ambiguous_hard"}
+{"query": "extracting authentication token from request headers inside service", "target_ids": ["guards#authorization-guard", "guards#execution-context"], "category": "ambiguous_hard"}
+{"query": "difference between middleware and interceptor execution order", "target_ids": ["guards#guards", "interceptors#basics"], "category": "ambiguous_hard"}
+{"query": "schema validation with DTO decorators failing silently", "target_ids": ["pipes#the-built-in-validationpipe", "pipes#class-validator#part1"], "category": "ambiguous_hard"}
+{"query": "running NestJS without an HTTP server as a CLI script", "target_ids": ["application-context#standalone-applications"], "category": "ambiguous_hard"}
+{"query": "passing metadata from controller decorator to custom guard", "target_ids": ["guards#setting-roles-per-handler", "guards#role-based-authentication"], "category": "ambiguous_hard"}
+{"query": "preventing brute force login attacks", "target_ids": ["security__rate-limiting#rate-limiting", "security__rate-limiting#configuration#part1"], "category": "ambiguous_hard"}
+{"query": "dispatching background messages without waiting for a reply", "target_ids": ["microservices__basics#event-based", "microservices__basics#publishing-events"], "category": "ambiguous_hard"}
+{"query": "how to broadcast real-time notifications to connected browser clients", "target_ids": ["websockets__gateways#gateways", "websockets__gateways#overview#part1"], "category": "ambiguous_hard"}
