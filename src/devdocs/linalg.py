@@ -3,56 +3,105 @@
 This module provides basic linear algebra operations:
 - matmul_naive: 3-loop matrix multiplication without high-level library functions
 - matmul_vec: vectorized matrix multiplication using @ operator
-- cosine_sim: cosine similarity between two 1D vectors
+- cosine_sim: cosine similarity between two 1D vectors with numerical stability
 - cosine_sim_matrix: fully vectorized batch cosine similarity between embedding matrices
 """
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 from numpy.typing import NDArray
 
-Matrix = NDArray[np.float64]
-Vector = NDArray[np.float64]
+FloatType = np.floating[Any]
+Matrix = NDArray[FloatType]
+Vector = NDArray[FloatType]
+
+
+def _require_2d(arr: Matrix, name: str = "array") -> tuple[int, int]:
+    """Validate that input array is 2D and return its shape (rows, cols).
+
+    Parameters
+    ----------
+    arr : Matrix
+        Input array to validate.
+    name : str
+        Variable name for descriptive error messaging.
+
+    Returns
+    -------
+    tuple[int, int]
+        Shape of the 2D matrix (rows, cols).
+
+    Raises
+    ------
+    ValueError
+        If the array is not 2-dimensional.
+    """
+    if arr.ndim != 2:
+        msg = f"Expected 2D matrix for {name}, but got shape {arr.shape} (ndim={arr.ndim})"
+        raise ValueError(msg)
+    return arr.shape[0], arr.shape[1]
+
+
+def _require_1d(arr: Vector, name: str = "vector") -> int:
+    """Validate that input vector is 1D and return its length.
+
+    Parameters
+    ----------
+    arr : Vector
+        Input vector to validate.
+    name : str
+        Variable name for descriptive error messaging.
+
+    Returns
+    -------
+    int
+        Length of the 1D vector.
+
+    Raises
+    ------
+    ValueError
+        If the vector is not 1-dimensional.
+    """
+    if arr.ndim != 1:
+        msg = f"Expected 1D vector for {name}, but got shape {arr.shape} (ndim={arr.ndim})"
+        raise ValueError(msg)
+    return arr.shape[0]
 
 
 def matmul_naive(a: Matrix, b: Matrix) -> Matrix:
-    """ضرب مصفوفتين بثلاث حلقات for فقط.
+    """Compute matrix multiplication using 3 nested loops without vectorization.
 
-    ممنوع: @ ، np.dot ، np.matmul ، np.einsum.
+    Forbidden: @, np.dot, np.matmul, np.einsum.
 
     Parameters
     ----------
     a : Matrix of shape (n, k)
-        First matrix.
+        First input matrix.
     b : Matrix of shape (k, m)
-        Second matrix.
+        Second input matrix.
 
     Returns
     -------
     Matrix of shape (n, m)
-        Resulting matrix product.
+        Resulting matrix product, preserving promoted input float dtype (e.g. float32 or float64).
 
     Raises
     ------
     ValueError
         If inputs are not 2D or inner dimensions do not match.
     """
-    if a.ndim != 2 or b.ndim != 2:
-        msg = (
-            f"Expected 2D matrices, but got shapes {a.shape} (ndim={a.ndim}) "
-            f"and {b.shape} (ndim={b.ndim})"
-        )
-        raise ValueError(msg)
-
-    n, k_a = a.shape
-    k_b, m = b.shape
+    n, k_a = _require_2d(a, name="a")
+    k_b, m = _require_2d(b, name="b")
 
     if k_a != k_b:
         msg = f"Inner dimensions do not match: {k_a} != {k_b} (shapes: {a.shape} and {b.shape})"
         raise ValueError(msg)
 
-    out: Matrix = np.zeros((n, m), dtype=np.float64)
+    target_dtype = np.result_type(a.dtype, b.dtype)
+    out: Matrix = np.zeros((n, m), dtype=target_dtype)
 
     for i in range(n):
         for j in range(m):
@@ -65,57 +114,62 @@ def matmul_naive(a: Matrix, b: Matrix) -> Matrix:
 
 
 def matmul_vec(a: Matrix, b: Matrix) -> Matrix:
-    """ضرب مصفوفتين بعملية NumPy المتجهة (@) مع التحقق من الأبعاد.
+    """Compute vectorized matrix multiplication using NumPy's @ operator with dimension checks.
 
     Parameters
     ----------
     a : Matrix of shape (n, k)
-        First matrix.
+        First input matrix.
     b : Matrix of shape (k, m)
-        Second matrix.
+        Second input matrix.
 
     Returns
     -------
     Matrix of shape (n, m)
-        Resulting matrix product.
+        Resulting matrix product, preserving input float dtype.
 
     Raises
     ------
     ValueError
         If inputs are not 2D or inner dimensions do not match.
     """
-    if a.ndim != 2 or b.ndim != 2:
-        msg = (
-            f"Expected 2D matrices, but got shapes {a.shape} (ndim={a.ndim}) "
-            f"and {b.shape} (ndim={b.ndim})"
-        )
-        raise ValueError(msg)
+    _, k_a = _require_2d(a, name="a")
+    k_b, _ = _require_2d(b, name="b")
 
-    if a.shape[1] != b.shape[0]:
-        msg = (
-            f"Inner dimensions do not match: {a.shape[1]} != {b.shape[0]} "
-            f"(shapes: {a.shape} and {b.shape})"
-        )
+    if k_a != k_b:
+        msg = f"Inner dimensions do not match: {k_a} != {k_b} (shapes: {a.shape} and {b.shape})"
         raise ValueError(msg)
 
     result = a @ b
-    return np.asarray(result, dtype=np.float64)
+    return np.asarray(result, dtype=result.dtype)
 
 
 def cosine_sim(a: Vector, b: Vector) -> float:
-    """حساب تشابه جيب التمام بين متجهين: cos(a, b) = (a·b) / (‖a‖ ‖b‖).
+    """Compute cosine similarity between two 1D vectors: cos(a, b) = (a·b) / (‖a‖ ‖b‖).
 
-    القرار الهندسي:
-    إذا كان أحد المتجهين صفرياً (الـ norm يساوي صفراً)، فإن الزاوية تكون غير معرفة رياضياً.
-    لتجنب القسمة على صفر أو إنتاج قيمة غير محددة (NaN)، نعيد 0.0 اصطلاحاً
-    (باعتبار المتجه الصفري لا يملك اتجاهاً ولا يتشابه مع أي متجه آخر).
+    Engineering Decisions & Numerical Stability:
+    1. Zero Vectors:
+       If either vector is zero (norm == 0.0 or max absolute value == 0.0), the angle is
+       mathematically undefined. We return 0.0 by convention to represent absence of similarity
+       without producing NaNs or warnings.
+    2. Numerical Stability (Extreme Floats):
+       To prevent catastrophic intermediate overflow (e.g. elements ~ 1e200 squared produce inf)
+       and underflow (e.g. elements ~ 1e-200 squared produce 0.0), vectors are scaled by their
+       maximum absolute component before computing Euclidean norm. Because max(|scaled|) == 1.0,
+       1.0 <= ||scaled||^2 <= dim, mathematically guaranteeing that squaring neither overflows
+       nor underflows.
+    3. IEEE 754 Floating-Point Guardrail:
+       Due to floating-point rounding errors in norm division and dot products, unclipped results
+       for collinear vectors can evaluate to 1.0000000000000002 or -1.0000000000000002.
+       We clip to [-1.0, 1.0] to preserve mathematical validity and prevent NaNs in downstream
+       arccos.
 
     Parameters
     ----------
     a : Vector of shape (dim,)
-        First vector.
+        First input vector.
     b : Vector of shape (dim,)
-        Second vector.
+        Second input vector.
 
     Returns
     -------
@@ -127,77 +181,100 @@ def cosine_sim(a: Vector, b: Vector) -> float:
     ValueError
         If inputs are not 1D vectors or vector lengths do not match.
     """
-    if a.ndim != 1 or b.ndim != 1:
-        msg = f"Expected 1D vectors, got shapes {a.shape} and {b.shape}"
+    dim_a = _require_1d(a, name="a")
+    dim_b = _require_1d(b, name="b")
+
+    if dim_a != dim_b:
+        msg = f"Vector lengths do not match: {dim_a} != {dim_b}"
         raise ValueError(msg)
 
-    if a.shape[0] != b.shape[0]:
-        msg = f"Vector lengths do not match: {a.shape[0]} != {b.shape[0]}"
-        raise ValueError(msg)
+    max_a = float(np.max(np.abs(a)))
+    max_b = float(np.max(np.abs(b)))
 
-    norm_a = float(np.linalg.norm(a))
-    norm_b = float(np.linalg.norm(b))
-
-    if norm_a == 0.0 or norm_b == 0.0:
+    if max_a == 0.0 or max_b == 0.0:
         return 0.0
 
-    dot_product = float(np.dot(a, b))
+    scaled_a = a / max_a
+    scaled_b = b / max_b
+
+    norm_a = float(np.linalg.norm(scaled_a))
+    norm_b = float(np.linalg.norm(scaled_b))
+
+    dot_product = float(np.dot(scaled_a, scaled_b))
     sim = dot_product / (norm_a * norm_b)
 
-    # قص القيمة لتفادي أخطاء التقريب العشري الطفيفة خارج النطاق [-1, 1]
     return float(np.clip(sim, -1.0, 1.0))
 
 
 def cosine_sim_matrix(q: Matrix, d: Matrix) -> Matrix:
-    """حساب مصفوفة تشابه جيب التمام بين مصفوفتي embeddings بشكل متجه بالكامل.
+    """Compute fully vectorized batch cosine similarity between embedding matrices.
 
     q: (n, dim)  d: (m, dim)  ->  (n, m)
 
-    الشروط الهندسية:
-    1. بدون أي حلقة for أو while أو list comprehension.
-    2. تطبيع كل صف بالقسمة على الـ norm مع keepdims=True ثم ضرب q_norm @ d_norm.T.
-    3. التعامل مع الصفوف الصفرية بالكامل بدون إنتاج NaN وبدون أي تحذيرات حسابية.
+    Engineering Constraints & Numerical Stability:
+    1. Zero Loops: Fully vectorized without any for, while, or comprehension constructs.
+    2. Numerical Stability (Extreme Floats):
+       Each row is scaled by its maximum absolute component before computing norm.
+       This prevents overflow on huge magnitudes (e.g. 1e200 / 1e30 in float32)
+       and underflow on tiny magnitudes (e.g. 1e-200 / 1e-30 in float32).
+    3. Safe Zero-Row Handling:
+       For zero rows, max absolute value is 0.0. We substitute 1.0 in the divisor
+       via np.where, yielding exactly 0.0 without generating NaNs or RuntimeWarnings.
+    4. Dtype Preservation:
+       Output preserves the promoted floating-point dtype of the inputs (e.g. float32 -> float32).
+    5. IEEE 754 Floating-Point Guardrail:
+       Values are clipped to [-1.0, 1.0] to safeguard against precision overshoots.
 
     Parameters
     ----------
     q : Matrix of shape (n, dim)
-        Queries / source embeddings.
+        Query / source embedding matrix.
     d : Matrix of shape (m, dim)
-        Documents / target embeddings.
+        Document / target embedding matrix.
 
     Returns
     -------
     Matrix of shape (n, m)
-        Similarity matrix where entry (i, j) is the cosine similarity between q[i] and d[j].
+        Pairwise cosine similarity matrix with values bounded to [-1.0, 1.0].
 
     Raises
     ------
     ValueError
         If inputs are not 2D matrices or feature dimensions do not match.
     """
-    if q.ndim != 2 or d.ndim != 2:
-        msg = f"Expected 2D matrices, got shapes {q.shape} and {d.shape}"
+    _, dim_q = _require_2d(q, name="q")
+    _, dim_d = _require_2d(d, name="d")
+
+    if dim_q != dim_d:
+        msg = f"Embedding dimensions do not match: {dim_q} != {dim_d}"
         raise ValueError(msg)
 
-    if q.shape[1] != d.shape[1]:
-        msg = f"Embedding dimensions do not match: {q.shape[1]} != {d.shape[1]}"
-        raise ValueError(msg)
+    target_dtype = np.result_type(q.dtype, d.dtype)
 
-    # حساب الـ Euclidean Norm لكل صف مع الحفاظ على الأبعاد: shape (n, 1) و (m, 1)
-    q_norms = np.linalg.norm(q, axis=1, keepdims=True)
-    d_norms = np.linalg.norm(d, axis=1, keepdims=True)
+    # 1. Scale each row by its max absolute value for numerical stability
+    q_max = np.max(np.abs(q), axis=1, keepdims=True)
+    d_max = np.max(np.abs(d), axis=1, keepdims=True)
 
-    # لتجنب القسمة على صفر وظهور تحذيرات RuntimeWarning، نستبدل القيمة 0 بـ 1 في المقام
-    # بما أن البسط للصفوف الصفرية هو 0، فإن 0 / 1 = 0 تلقائياً وبأمان تام
-    q_safe_norms = np.where(q_norms == 0.0, 1.0, q_norms)
-    d_safe_norms = np.where(d_norms == 0.0, 1.0, d_norms)
+    q_safe_max = np.where(q_max == 0.0, 1.0, q_max)
+    d_safe_max = np.where(d_max == 0.0, 1.0, d_max)
 
-    q_norm = q / q_safe_norms
-    d_norm = d / d_safe_norms
+    q_scaled = q / q_safe_max
+    d_scaled = d / d_safe_max
 
-    # ضرب المصفوفات المتجهة للحصول على كل التشابهات الزوجية دفعة واحدة
+    # 2. Compute Euclidean norm of scaled vectors (guaranteed no overflow/underflow)
+    q_scaled_norms = np.linalg.norm(q_scaled, axis=1, keepdims=True)
+    d_scaled_norms = np.linalg.norm(d_scaled, axis=1, keepdims=True)
+
+    # 3. Safe normalization (zero rows mapped to 0 / 1 = 0)
+    q_safe_norms = np.where(q_max == 0.0, 1.0, q_scaled_norms)
+    d_safe_norms = np.where(d_max == 0.0, 1.0, d_scaled_norms)
+
+    q_norm = q_scaled / q_safe_norms
+    d_norm = d_scaled / d_safe_norms
+
+    # 4. Batch dot product
     sim_matrix = q_norm @ d_norm.T
 
-    # ضمان عدم خروج القيم عن المجال المسموح [-1.0, 1.0] بسبب دقة الفاصلة العائمة
+    # 5. Guardrail clipping
     clipped = np.clip(sim_matrix, -1.0, 1.0)
-    return np.asarray(clipped, dtype=np.float64)
+    return np.asarray(clipped, dtype=target_dtype)
