@@ -1,5 +1,7 @@
 # DevDocs Copilot: Task 1.1 - إعداد المشروع والجبر الخطي بالكود
 
+[![CI](https://github.com/FayezAl-medani/devdocs-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/FayezAl-medani/devdocs-copilot/actions/workflows/ci.yml)
+
 مشروع تأسيسي لفهم الجبر الخطي والعمليات المتجهة (Vectorized Operations) التي تُبنى عليها أنظمة الذكاء الاصطناعي وهندسة الـ AI، مثل حساب تشابه التضمينات (Embedding Similarities)، وضرب المصفوفات، وإعداد بيئة تطوير احترافية متكاملة.
 
 ---
