@@ -21,11 +21,13 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "hypothesis>=6.169.0",
+    "matplotlib>=3.11.2",
     "pre-commit>=4.6.2",
     "pyright>=1.1.414",
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
     "ruff>=0.17.0",
+    "torch>=2.14.1",
 ]
 
 [tool.ruff]
